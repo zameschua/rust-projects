@@ -35,7 +35,7 @@ impl Store {
               if line_values.len() == 2 {
                 let key: String = String::from(line_values[0]);
                 let value: String = String::from(line_values[1]);
-                hashmap.insert(String::from(key), String::from(value));
+                hashmap.insert(key, value);
               } else {
                 panic!("Failed to rehydrate store! Failed at {}", line)
               }
@@ -45,7 +45,7 @@ impl Store {
 
     Ok(Store {
       log_file_name: String::from(log_file_name),
-      hashmap: hashmap,
+      hashmap,
     })
   }
   
