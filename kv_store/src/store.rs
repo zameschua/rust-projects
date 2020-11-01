@@ -23,6 +23,8 @@ impl Store {
                 let key: String = String::from(line_values[0]);
                 let value: String = String::from(line_values[1]);
                 hashmap.insert(String::from(key), String::from(value));
+              } else {
+                panic!("Failed to rehydrate store! Failed at {}", line)
               }
           }
       }
@@ -61,4 +63,38 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where P: AsRef<Path>, {
     let file: File = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
+}
+
+
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn store_rehydrate_success() {
+    const TEST_LOG_FILE_NAME: &str = "kv_log_tests_success.csv";
+    let mut store: Store = match Store::rehydrate_from(TEST_LOG_FILE_NAME) {
+      Ok(store) => store,
+      Err(_) => panic!("Failed to rehydrate store")
+    };
+  }
+
+  #[test]
+  fn store_rehydrate_failure() {
+    const TEST_LOG_FILE_NAME: &str = "kv_log_tests_failure.csv";
+    let mut store: Store = match Store::rehydrate_from(TEST_LOG_FILE_NAME) {
+      Ok(store) => store,
+      Err(_) => panic!("Failed to rehydrate store")
+    };
+  }
+
+  #[test]
+  fn store_rehydrate_non_existant_file() {
+    const TEST_LOG_FILE_NAME: &str = "non_existant_file.csv";
+    let mut store: Store = match Store::rehydrate_from(TEST_LOG_FILE_NAME) {
+      Ok(store) => store,
+      Err(_) => panic!("Failed to rehydrate store")
+    };
+  }
 }
