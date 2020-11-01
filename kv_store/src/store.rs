@@ -9,10 +9,21 @@ pub struct Store {
   log_file_name: String,
 }
 
+/// A log-backed key-value store
+/// 
+/// This kv store is not production-suitable!
+/// It was built with the goal of learning Rust syntax
 impl Store {
-  // Errors from this method are propogated up the stack
-  // Rehydrate a store from the file specified at the path,
-  // Creating it if it doesn't exist
+  /// The default builder method to rehydrate a store from the file specified at the path,
+  /// creating it if it doesn't exist
+  /// 
+  /// # Examples
+  /// ```
+  /// let mut store: store::Store = match store::Store::rehydrate_from(log_file_name) {
+  ///   Ok(store) => store,
+  ///   Err(_) => panic!("Failed to rehydrate store")
+  /// };
+  /// ```
   pub fn rehydrate_from(log_file_name: &str) -> Result<Store, ()> {
     let mut hashmap: HashMap<String, String> = HashMap::new();
 
@@ -32,17 +43,34 @@ impl Store {
       }
     }
 
-    // and more! See the other methods for more details.
     Ok(Store {
       log_file_name: String::from(log_file_name),
       hashmap: hashmap,
     })
   }
   
+  /// Get a value from the store
+  /// 
+  /// # Examples
+  /// ```
+  /// let value: Option<&String> = store.get(key);
+  ///   match value {
+  ///     Some(value) => println!("{}", value),
+  ///     None => println!("No value found!")
+  ///   }
+  /// 
   pub fn get(&self, key: &str) -> Option<&String> {
     self.hashmap.get(key)
   }
 
+  /// Sets a key-value pair in the store
+  /// 
+  /// # Examples
+  /// ```
+  /// match store.set(key, value) {
+  ///   Ok(()) => println!("OK"),
+  ///   Err(_) => println!("Error, did not set value")
+  /// }
   pub fn set(&mut self, key: &str, value: &str) -> Result<(), io::Error> {
     // 1. Write into the write-ahead log
     let file: File = fs::OpenOptions::new()
