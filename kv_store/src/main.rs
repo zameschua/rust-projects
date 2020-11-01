@@ -1,18 +1,27 @@
 use std::str::FromStr;
 use std::io;
+use std::env;
 
 mod store;
 
-const LOG_FILE_NAME: &str = "./kv_log.txt";
+const DEFAULT_LOG_FILE_NAME: &str = "./kv_log.csv";
 
 fn main() {
-     // 1. Populate in memory store
-    let mut store: store::Store = match store::Store::rehydrate_from(LOG_FILE_NAME) {
+    // 1. Parse command line argument for custom log file name
+    let command_line_arguments: Vec<String> = env::args().collect();
+    let log_file_name: &str = if command_line_arguments.len() >= 2 {
+      &command_line_arguments[1]
+    } else {
+      DEFAULT_LOG_FILE_NAME
+    };
+
+     // 2. Populate in memory store
+    let mut store: store::Store = match store::Store::rehydrate_from(log_file_name) {
       Ok(store) => store,
       Err(_) => panic!("Failed to rehydrate store")
     };
 
-    // 2. Read command line arguments
+    // 3. Main loop: Parse and execute commands
     loop {
       let mut line_buffer = String::new();
       io::stdin()
@@ -24,7 +33,13 @@ fn main() {
         println!("Expected command like GET (key) or SET (key) (value)");
         continue
       }
-      let command: Command = Command::from_str(line_values[0]).expect("Received an invalid command, command should be one of GET or SET");      
+      let command: Command = match Command::from_str(line_values[0]) {
+        Ok(command) => command,
+        Err(()) => {
+          println!("Received an invalid command, command should be one of GET or SET");
+          continue;
+        }
+      };
 
       match command {
         Command::GET => {
@@ -42,7 +57,7 @@ fn main() {
         Command::SET => {
           if line_values.len() <= 2 {
             println!("Expected command like SET (key) (value)");
-            continue
+            continue;
           }
           let key: &str = line_values[1];
           let value: &str = {
